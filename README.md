@@ -52,17 +52,18 @@ Phân tích cảm xúc (Sentiment Analysis) là bài toán phân loại văn b�
 ### Mô tả
 
 Dataset bao gồm các đánh giá của sinh viên về giảng viên, được gán nhãn với 3 loại cảm xúc:
+
 - `positive`: Đánh giá tích cực
-- `negative`: Đánh giá tiêu cực  
+- `negative`: Đánh giá tiêu cực
 - `neutral`: Đánh giá trung lập (đã loại bỏ trong dự án này)
 
 ### Thống kê
 
-| Split | Positive | Negative | Tổng |
-|-------|----------|----------|------|
-| Train | 5,071    | 2,909    | 7,980 |
-| Dev   | 714      | 405      | 1,119 |
-| Test  | 1,425    | 791      | 2,216 |
+| Split    | Positive  | Negative  | Tổng       |
+| -------- | --------- | --------- | ---------- |
+| Train    | 5,071     | 2,909     | 7,980      |
+| Dev      | 714       | 405       | 1,119      |
+| Test     | 1,425     | 791       | 2,216      |
 | **TỔNG** | **7,210** | **4,105** | **11,315** |
 
 **Phân bố:** ~64% Positive, ~36% Negative (imbalanced)
@@ -95,21 +96,23 @@ git clone https://github.com/sonvx/vietnam-sentiment-corpus.git
 ## 🔄 Pipeline
 
 ### 1. **Thu thập & Chuẩn bị dữ liệu**
-   - Load dữ liệu từ file JSON
-   - Lọc chỉ lấy topic `lecturer` và loại bỏ nhãn `neutral`
-   - Encode nhãn: `negative=0`, `positive=1`
+
+- Load dữ liệu từ file JSON
+- Lọc chỉ lấy topic `lecturer` và loại bỏ nhãn `neutral`
+- Encode nhãn: `negative=0`, `positive=1`
 
 ### 2. **Tiền xử lý (Preprocessing)**
 
 Pipeline tiền xử lý bao gồm các bước:
 
 ```python
-Text → Lowercase → Unicode Normalization → Remove URLs/Emoji 
-    → Remove Duplicate Chars → Remove Punctuation 
+Text → Lowercase → Unicode Normalization → Remove URLs/Emoji
+    → Remove Duplicate Chars → Remove Punctuation
     → Word Tokenization (underthesea) → Remove Stopwords → Clean Text
 ```
 
 **Chi tiết:**
+
 - **Chuẩn hóa Unicode:** Đồng nhất các ký tự tiếng Việt (NFC)
 - **Xóa noise:** URLs, emoji, dấu câu, ký tự lặp ("haaay" → "hay")
 - **Tách từ:** Sử dụng `underthesea` để word tokenization tiếng Việt
@@ -118,6 +121,7 @@ Text → Lowercase → Unicode Normalization → Remove URLs/Emoji
 ### 3. **Trích xuất đặc trưng (Feature Extraction)**
 
 **TF-IDF Vectorizer:**
+
 - `max_features=5000`: Giữ lại 5000 từ quan trọng nhất
 - `ngram_range=(1, 2)`: Unigram + Bigram
 - `min_df=2`: Bỏ các từ xuất hiện < 2 lần
@@ -126,6 +130,7 @@ Text → Lowercase → Unicode Normalization → Remove URLs/Emoji
 ### 4. **Huấn luyện mô hình (Training)**
 
 So sánh 3 thuật toán:
+
 - **Logistic Regression** (LR)
 - **Linear Support Vector Machine** (SVM)
 - **Multinomial Naive Bayes** (NB)
@@ -150,21 +155,23 @@ Với `class_weight='balanced'` để xử lý imbalanced data.
 
 ### Tổng quan các mô hình
 
-| Mô hình | Ưu điểm | Nhược điểm |
-|---------|---------|------------|
-| **Logistic Regression** | Đơn giản, nhanh, hiệu quả với text | Giả định tuyến tính |
-| **Linear SVM** | Hiệu quả với high-dim data, robust | Tốn thời gian train với dataset lớn |
-| **Naive Bayes** | Rất nhanh, ít data cũng hoạt động tốt | Giả định independence |
+| Mô hình                 | Ưu điểm                               | Nhược điểm                          |
+| ----------------------- | ------------------------------------- | ----------------------------------- |
+| **Logistic Regression** | Đơn giản, nhanh, hiệu quả với text    | Giả định tuyến tính                 |
+| **Linear SVM**          | Hiệu quả với high-dim data, robust    | Tốn thời gian train với dataset lớn |
+| **Naive Bayes**         | Rất nhanh, ít data cũng hoạt động tốt | Giả định independence               |
 
 ### Mô hình được chọn: **Linear SVM** ✅
 
 **Lý do:**
+
 1. **Hiệu suất cao nhất:** F1-Score = 0.9266 trên test set
 2. **Robust:** Hoạt động tốt với imbalanced data
 3. **Generalization tốt:** Không bị overfit, gap train-test nhỏ
 4. **Hiệu quả với TF-IDF:** SVM phù hợp với feature space sparse và high-dimensional
 
 **Hyperparameters tối ưu:**
+
 ```python
 LinearSVC(
     C=1.0,                    # Regularization strength
@@ -182,38 +189,40 @@ LinearSVC(
 
 ### Hiệu suất mô hình trên Test Set
 
-| Model | Accuracy | Precision | Recall | F1-Score |
-|-------|----------|-----------|--------|----------|
-| Logistic Regression | 0.9220 | 0.9254 | 0.9220 | 0.9221 |
-| **Linear SVM** | **0.9260** | **0.9287** | **0.9260** | **0.9266** ✅ |
-| Naive Bayes | 0.9334 | 0.9347 | 0.9334 | 0.9335 |
+| Model               | Accuracy   | Precision  | Recall     | F1-Score      |
+| ------------------- | ---------- | ---------- | ---------- | ------------- |
+| Logistic Regression | 0.9220     | 0.9254     | 0.9220     | 0.9221        |
+| **Linear SVM**      | **0.9260** | **0.9287** | **0.9260** | **0.9266** ✅ |
+| Naive Bayes         | 0.9334     | 0.9347     | 0.9334     | 0.9335        |
 
 ### Confusion Matrix (Test Set - Linear SVM)
 
-|               | Predicted Negative | Predicted Positive |
-|---------------|-------------------:|-------------------:|
-| **Actual Negative** | 715 | 76 |
-| **Actual Positive** | 88 | 1,337 |
+|                     | Predicted Negative | Predicted Positive |
+| ------------------- | -----------------: | -----------------: |
+| **Actual Negative** |                715 |                 76 |
+| **Actual Positive** |                 88 |              1,337 |
 
 ### Phân tích chi tiết (Linear SVM)
 
 **Class-wise Performance:**
 
-| Class | Precision | Recall | F1-Score | Support |
-|-------|-----------|--------|----------|---------|
-| Negative | 0.89 | 0.90 | 0.90 | 791 |
-| Positive | 0.95 | 0.94 | 0.94 | 1,425 |
-| **Macro Avg** | **0.92** | **0.92** | **0.92** | **2,216** |
+| Class         | Precision | Recall   | F1-Score | Support   |
+| ------------- | --------- | -------- | -------- | --------- |
+| Negative      | 0.89      | 0.90     | 0.90     | 791       |
+| Positive      | 0.95      | 0.94     | 0.94     | 1,425     |
+| **Macro Avg** | **0.92**  | **0.92** | **0.92** | **2,216** |
 
 ### Nhận xét
 
 ✅ **Ưu điểm:**
+
 - Độ chính xác cao (>92%) trên tất cả các metrics
 - Cân bằng tốt giữa Precision và Recall
 - Generalization tốt (train-dev-test performance ổn định)
 - Hiệu quả với cả 2 classes (Positive & Negative)
 
 ⚠️ **Hạn chế:**
+
 - Vẫn còn confuse ~4-5% trường hợp (do ngôn ngữ mỉa mai, phức tạp)
 - Performance trên Negative class thấp hơn Positive (do imbalanced data)
 
@@ -249,6 +258,7 @@ pip install -r requirements.txt
 ```
 
 **Các thư viện chính:**
+
 - `scikit-learn==1.5.0` - Machine Learning
 - `pandas==2.1.3` - Data manipulation
 - `numpy==1.26.2` - Numerical computing
@@ -284,6 +294,7 @@ python train.py
 ```
 
 Script sẽ:
+
 - Load và tiền xử lý dữ liệu
 - Train model Linear SVM
 - Tìm optimal threshold
@@ -297,12 +308,14 @@ jupyter notebook main.ipynb
 ```
 
 Chạy tất cả các cells để:
+
 - Khám phá dữ liệu (EDA)
 - Thử nghiệm nhiều mô hình
 - So sánh hiệu suất
 - Export model tốt nhất
 
 **Output:**
+
 ```
 app/models/
 ├── sentiment_pipeline.pkl    # Model pipeline (TF-IDF + Classifier)
@@ -323,6 +336,7 @@ python demo_inference.py
 ```
 
 Features:
+
 - Test với các câu mẫu có sẵn
 - Interactive mode: nhập câu để phân tích real-time
 
@@ -334,6 +348,7 @@ jupyter notebook demo.ipynb
 ```
 
 Notebook bao gồm:
+
 - Test với câu đơn
 - Batch prediction
 - Visualization
@@ -347,6 +362,7 @@ streamlit run streamlit_app.py
 ```
 
 Giao diện web với:
+
 - Nhập văn bản và nhận kết quả real-time
 - Hiển thị xác suất (probability bars)
 - Xem văn bản sau preprocessing
@@ -419,16 +435,19 @@ big-ex/
 ### Giải thích thư mục
 
 - **`app/`**: Chứa toàn bộ source code chính của dự án
+
   - `preprocess.py`: Các hàm tiền xử lý văn bản
   - `train.py`: Script để train model từ đầu
   - `predict.py`: Class và hàm để inference
   - `streamlit_app.py`: Web app demo
 
 - **`demo/`**: Các script/notebook để demo nhanh
+
   - Dành cho người dùng cuối muốn test model
   - Không cần chạy lại training
 
 - **`data/`**: Chỉ chứa data mẫu nhỏ hoặc hướng dẫn tải data
+
   - Không upload dataset lớn lên GitHub
 
 - **`reports/`** & **`slides/`**: Tài liệu báo cáo và thuyết trình
@@ -441,15 +460,13 @@ big-ex/
 
 ### Thông tin nhóm
 
-| Họ và tên | Mã SV | Email | Vai trò |
-|-----------|-------|-------|---------|
-| [Tên SV 1] | [MSSV1] | [email1@student.edu.vn] | Leader, ML Engineer |
-| [Tên SV 2] | [MSSV2] | [email2@student.edu.vn] | Data Analyst |
-| [Tên SV 3] | [MSSV3] | [email3@student.edu.vn] | Developer |
+| Họ và tên         | Mã SV      | Email                   |
+| ----------------- | ---------- | ----------------------- |
+| [Hoàng Hải Đăng]  | [12423009] | [email1@student.edu.vn] |
+| [Trần Khánh Toàn] | [12423035] | [email2@student.edu.vn] |
 
-**Lớp:** [Tên lớp]  
-**Giảng viên hướng dẫn:** [Tên giảng viên]  
-**Học kỳ:** [HK/Năm học]
+**Lớp:** [124231]  
+**Giảng viên hướng dẫn:** [PGS.TS Nguyễn Văn Hậu]
 
 ---
 
@@ -471,12 +488,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🎉 Kết Luận
 
 Dự án đã thành công trong việc:
+
 - ✅ Xây dựng pipeline hoàn chỉnh cho bài toán Sentiment Analysis tiếng Việt
 - ✅ So sánh và chọn được mô hình tối ưu (Linear SVM, F1=92.66%)
 - ✅ Xây dựng ứng dụng demo thân thiện với người dùng
 - ✅ Code sạch, có cấu trúc, dễ tái sử dụng và mở rộng
 
 **Hướng phát triển:**
+
 - Thử nghiệm với Deep Learning (LSTM, BERT-Vietnamese)
 - Mở rộng cho multi-class classification (more sentiments)
 - Deploy model lên cloud (Heroku, AWS, GCP)
@@ -487,10 +506,10 @@ Dự án đã thành công trong việc:
 ## 📧 Liên Hệ
 
 Nếu có câu hỏi hoặc góp ý, vui lòng liên hệ:
+
 - Email: [your-email@example.com]
 - GitHub Issues: [Link to issues page]
 
 ---
 
 **⭐ Nếu thấy dự án hữu ích, hãy cho chúng tôi một star trên GitHub!**
-
