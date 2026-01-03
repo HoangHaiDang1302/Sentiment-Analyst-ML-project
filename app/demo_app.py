@@ -1,7 +1,14 @@
 import streamlit as st
 import joblib
 import numpy as np
-from utils import preprocess_text
+import sys
+import os
+
+# Thêm thư mục gốc vào path để import app module
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT_DIR)
+
+from app.utils import preprocess_text
 
 # CẤU HÌNH TRANG
 st.set_page_config(
@@ -10,17 +17,20 @@ st.set_page_config(
     layout="centered"
 )
 
+# Đường dẫn đến thư mục models
+MODELS_DIR = os.path.join(ROOT_DIR, 'app', 'models')
+
 # TẢI MODEL VÀ CÁC THÀNH PHẦN
 @st.cache_resource
 def load_model():
     """Tải model và các thành phần cần thiết"""
-    pipeline = joblib.load('models/sentiment_pipeline.pkl')
-    label_encoder = joblib.load('models/label_encoder.pkl')
-    metadata = joblib.load('models/model_metadata.pkl')
+    pipeline = joblib.load(os.path.join(MODELS_DIR, 'sentiment_pipeline.pkl'))
+    label_encoder = joblib.load(os.path.join(MODELS_DIR, 'label_encoder.pkl'))
+    metadata = joblib.load(os.path.join(MODELS_DIR, 'model_metadata.pkl'))
     
     # Tải stopwords nếu có
     try:
-        stopwords = joblib.load('models/stopwords.pkl')
+        stopwords = joblib.load(os.path.join(MODELS_DIR, 'stopwords.pkl'))
     except:
         stopwords = set()
     
