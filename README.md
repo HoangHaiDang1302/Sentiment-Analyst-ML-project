@@ -47,7 +47,7 @@ Phân tích cảm xúc (Sentiment Analysis) là bài toán phân loại văn b�
 
 ### UIT-VSFC (Vietnamese Students' Feedback Corpus)
 
-**Nguồn:** [UIT-VSFC GitHub Repository](https://github.com/sonvx/vietnam-sentiment-corpus)
+**Nguồn:** [UIT-VSFC ](https://huggingface.co/datasets/uitnlp/vietnamese_students_feedback)
 
 ### Mô tả
 
@@ -81,8 +81,7 @@ Dataset bao gồm các đánh giá của sinh viên về giảng viên, được
 ### Download Dataset
 
 ```bash
-# Tải về từ GitHub
-git clone https://github.com/sonvx/vietnam-sentiment-corpus.git
+
 
 # Hoặc tải trực tiếp các file:
 # - UIT-VSFC-train.json
